@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="463a2e12-f7f9-4378-9ea2-e1437abe3507" >
+		<file:connection workingDir="#[p('app.home')++'\sample_files']" />
+	</file:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="652c1d6a-f1df-465a-80bb-b59ba1130414" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<flow name="readFile-Flow" doc:id="8f4eab74-68d1-4578-86f7-860e780f3982" >
+		<file:read doc:name="Read" doc:id="21b23e85-b771-419f-8878-118d422d7b89" config-ref="File_Config" path="#[attributes.uriParams.fileName]"/>
+	</flow>
+	<flow name="mule-streaming-video-Flow" doc:id="a59743a7-9299-4cb9-b887-ed33f4e0b8b6" >
+		<http:listener doc:name="Listener" doc:id="df413a6b-255a-414c-8830-12f992868775" config-ref="HTTP_Listener_config" path="/video/{fileName}">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "video/mp4"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<flow-ref doc:name="Flow Reference" doc:id="03a73808-586f-4ec8-919c-e756eff955f5" name="readFile-Flow"/>
+	</flow>
+	<flow name="mule-streaming-audio-Flow" doc:id="7558fbbe-359e-4ae6-ac3a-906f106c9de0" >
+		<http:listener doc:name="Listener" doc:id="b02d9202-b0fe-4787-992e-cbd67f641b56" config-ref="HTTP_Listener_config" path="/audio/{fileName}">
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "audio/mp3"
+}]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<flow-ref doc:name="Flow Reference" doc:id="75bf5f05-f518-4667-837c-52ab835550f1" name="readFile-Flow"/>
+	</flow>
+</mule>
